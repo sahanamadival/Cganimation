@@ -1515,7 +1515,6 @@ static void scenePhysics(float t){
     float lt = t - S_PHYS_S;
     float f = sFade(t, S_PHYS_S, S_PHYS_E, 2.0f);
 
-    // Deep slate background
     glClearColor(0.08f, 0.08f, 0.12f, 1.0f); 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     setup3D();
@@ -1529,16 +1528,19 @@ static void scenePhysics(float t){
 
     drawFloor(16, 12, 0.25f, 0.22f, 0.20f, 12);
 
-    // FIXED: Blackboard drawing call removed. 
-    // The space is now clear, allowing formulas to float in the air.
+    // ── 1. BLACKBOARD ──
+    glPushMatrix(); 
+        glTranslatef(0.0f, 3.2f, -5.5f); 
+        drawBlackboard(11, 5.5f); 
+    glPopMatrix();
 
-    // ── 4. FORMULAS (CHANGED TO WHITE FOR VISIBILITY) ──
+    // ── 2. FORMULAS (CONTRARY CHALK COLORS) ──
     const char* lines[] = {
-        "F = m . a",
-        "W = F . ds",
-        "KE = (1/2) m v^2",
-        "Delta KE = W",
-        "P = F . v"
+        "F = m . a",          // Force
+        "W = F . ds",         // Work
+        "KE = (1/2) m v^2",   // Energy
+        "Delta KE = W",       // Theorem
+        "P = F . v"           // Power
     };
 
     glDisable(GL_LIGHTING);
@@ -1546,10 +1548,15 @@ static void scenePhysics(float t){
         if(lt > i * 4.5f){
             float lf = c01((lt - i * 4.5f) / 2.2f);
             
-            // Changed to Soft White (0.9, 0.9, 0.9) because black text 
-            // on a dark background is invisible.
-            glColor4f(0.9f, 0.9f, 0.9f, f * lf);
+            // // CONTRARY COLOR LOGIC:
+            // if(i == 0) glColor4f(1.0f, 0.9f, 0.2f, f * lf); // Bright Yellow
+            // else if(i == 1) glColor4f(1.0f, 0.4f, 0.4f, f * lf); // Chalk Red
+            // else if(i == 2) glColor4f(0.2f, 1.0f, 0.9f, f * lf); // Electric Cyan
+            // else if(i == 3) glColor4f(0.4f, 1.0f, 0.4f, f * lf); // Neon Green
+            // else glColor4f(1.0f, 0.6f, 0.1f, f * lf);           // Vibrant Orange
             
+            // Placed slightly in front of the board surface (-5.5f)
+             glColor4f(0.0f, 0.0f, 0.0f, f * lf);
             glRasterPos3f(-5.0f, 5.2f - i * 0.85f, -5.25f);
             for(const char* s = lines[i]; *s; s++) {
                 glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *s);
@@ -1558,22 +1565,19 @@ static void scenePhysics(float t){
     }
     glEnable(GL_LIGHTING);
 
-    // Character: Aditya
+    // ── 3. CHARACTERS ──
     glPushMatrix();
       glTranslatef(-1.2f, 0, -4.0f);
       glRotatef(12, 0, 1, 0);
       drawHuman(0.2f, 0.25f, 0.45f, POSE_WRITE, lt);
     glPopMatrix();
 
-    // Character: Teacher
     glPushMatrix();
       glTranslatef(3.8f, 0, -1.8f);
       glRotatef(-28, 0, 1, 0);
       drawHuman(0.35f, 0.35f, 0.35f, POSE_STAND, 0);
     glPopMatrix();
 
-    // Speech bubble section remains commented out/removed as per your snippet
-    
     drawParticles();
     clearFog();
 }

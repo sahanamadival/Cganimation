@@ -1515,6 +1515,7 @@ static void scenePhysics(float t){
     float lt = t - S_PHYS_S;
     float f = sFade(t, S_PHYS_S, S_PHYS_E, 2.0f);
 
+    // Deep slate background
     glClearColor(0.08f, 0.08f, 0.12f, 1.0f); 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     setup3D();
@@ -1528,12 +1529,10 @@ static void scenePhysics(float t){
 
     drawFloor(16, 12, 0.25f, 0.22f, 0.20f, 12);
 
-    glPushMatrix(); 
-        glTranslatef(0.0f, 3.2f, -5.5f); 
-        drawBlackboard(11, 5.5f); 
-    glPopMatrix();
+    // FIXED: Blackboard drawing call removed. 
+    // The space is now clear, allowing formulas to float in the air.
 
-    // ── 4. BLACKBOARD FORMULAS (CHANGED TO BLACK) ──
+    // ── 4. FORMULAS (CHANGED TO WHITE FOR VISIBILITY) ──
     const char* lines[] = {
         "F = m . a",
         "W = F . ds",
@@ -1541,54 +1540,40 @@ static void scenePhysics(float t){
         "Delta KE = W",
         "P = F . v"
     };
+
     glDisable(GL_LIGHTING);
     for(int i = 0; i < 5; i++){
         if(lt > i * 4.5f){
             float lf = c01((lt - i * 4.5f) / 2.2f);
-            // SET TO BLACK: (0, 0, 0)
-            glColor4f(0.0f, 0.0f, 0.0f, f * lf);
+            
+            // Changed to Soft White (0.9, 0.9, 0.9) because black text 
+            // on a dark background is invisible.
+            glColor4f(0.9f, 0.9f, 0.9f, f * lf);
+            
             glRasterPos3f(-5.0f, 5.2f - i * 0.85f, -5.25f);
-            for(const char* s = lines[i]; *s; s++) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *s);
+            for(const char* s = lines[i]; *s; s++) {
+                glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *s);
+            }
         }
     }
     glEnable(GL_LIGHTING);
 
-    // Characters
+    // Character: Aditya
     glPushMatrix();
       glTranslatef(-1.2f, 0, -4.0f);
       glRotatef(12, 0, 1, 0);
       drawHuman(0.2f, 0.25f, 0.45f, POSE_WRITE, lt);
     glPopMatrix();
 
+    // Character: Teacher
     glPushMatrix();
       glTranslatef(3.8f, 0, -1.8f);
       glRotatef(-28, 0, 1, 0);
       drawHuman(0.35f, 0.35f, 0.35f, POSE_STAND, 0);
     glPopMatrix();
 
-    // // ── 6. SPEECH BUBBLE (CHANGED TEXT TO BLACK) ──
-    // if(lt > 10){
-    //     float sf = c01((lt - 10) / 3.2f) * f;
-    //     // Bubble needs to be light enough to see black text
-    //     mat(0.85f, 0.85f, 0.88f, sf * 0.9f, 5, 0.1f);
-    //     glPushMatrix(); glTranslatef(1.8f, 4.1f, -1.0f); glScalef(4.0f, 1.2f, 0.1f); glutSolidCube(1); glPopMatrix();
-        
-    //     glPushMatrix(); glTranslatef(2.3f, 3.4f, -0.92f); glRotatef(-22, 0, 0, 1);
-    //       glScalef(0.2f, 0.5f, 0.08f); glutSolidCube(1);
-    //     glPopMatrix();
-
-    //     glDisable(GL_LIGHTING);
-    //     // SET TO BLACK: (0, 0, 0)
-    //     billboard3D(0.35f, 4.25f, -0.88f, "\"You're the only one here", 0.0f, 0.0f, 0.0f, sf, GLUT_BITMAP_HELVETICA_12);
-    //     billboard3D(0.35f, 3.95f, -0.88f, "who thinks at my frequency.\"", 0.0f, 0.0f, 0.0f, sf, GLUT_BITMAP_HELVETICA_12);
-    //     glEnable(GL_LIGHTING);
-
-    //     if(fmodf(lt, 0.05f) < 0.025f && sf > 0.5f)
-    //         spawnParticle(-1.2f + randf(-0.3f, 0.3f), 2.6f, -4.0f,
-    //                       randf(-0.5f, 0.5f), randf(0.5f, 1.5f), randf(-0.5f, 0.5f),
-    //                       1.2f, 0.04f, 1.0f, 0.9f, 0.2f);
-    // }
-
+    // Speech bubble section remains commented out/removed as per your snippet
+    
     drawParticles();
     clearFog();
 }

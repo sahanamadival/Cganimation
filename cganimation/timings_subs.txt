@@ -1,0 +1,211 @@
+﻿
+> // â”€â”€â”€ Interactivity State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  static float g_camRotX = 0;
+  static float g_camRotY = 0;
+  static float g_camZoom = 0;
+  static int g_lastMouseX = 0, g_lastMouseY = 0;
+  static bool g_isDragging = false;
+  
+  // â”€â”€â”€ Timing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â
+”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  static float g_time = 0.0f;          // seconds elapsed
+  static int   g_lastMs = 0;
+  static bool  g_paused = false;
+  static const float TOTAL_DURATION = 300.0f; // 5 minutes
+  
+  // Window
+  static int WIN_W = 1280, WIN_H = 720;
+  
+  // â”€â”€â”€ Scene boundaries (seconds) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+> // ACT I
+> #define SCENE_TITLE_START   0.0f
+> #define SCENE_TITLE_END    10.0f
+  
+> #define SCENE_KING_START   10.0f
+> #define SCENE_KING_END     35.0f
+  
+> #define SCENE_TRANSFER_START 35.0f
+> #define SCENE_TRANSFER_END   60.0f
+  
+> #define SCENE_SPEECH_START  60.0f
+> #define SCENE_SPEECH_END   100.0f
+  
+> #define SCENE_FREEZE_START 100.0f
+> #define SCENE_FREEZE_END   130.0f
+  
+> // ACT II
+> #define SCENE_LOW_START    130.0f
+> #define SCENE_LOW_END      155.0f
+  
+> #define SCENE_SISTER_START 155.0f
+> #define SCENE_SISTER_END   185.0f
+  
+> #define SCENE_MATH_START   185.0f
+> #define SCENE_MATH_END     215.0f
+  
+> #define SCENE_PHYSICS_START 215.0f
+> #define SCENE_PHYSICS_END   245.0f
+  
+> // ACT III
+> #define SCENE_COMEBACK_START 245.0f
+> #define SCENE_COMEBACK_END   270.0f
+  
+> #define SCENE_YAKSHA_START  270.0f
+> #define SCENE_YAKSHA_END    290.0f
+  
+> // ACT IV
+> #define SCENE_MENTOR_START  290.0f
+> #define SCENE_MENTOR_END    300.0f
+  
+  // â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  static float clamp01(float x){ return x<0?0:x>1?1:x; }
+  static float smoothstep(float t){ t=clamp01(t); return t*t*(3-2*t); }
+  static float fadeIn(float t,float s,float e,float d=2.0f){
+      return smoothstep(clamp01((t-s)/d));
+  }
+  static float fadeOut(float t,float s,float e,float d=2.0f){
+      return 1.0f-smoothstep(clamp01((t-(e-d))/d));
+  }
+  static float sceneFade(float t,float s,float e,float d=2.0f){
+      return clamp01(fadeIn(t,s,e,d)*fadeOut(t,s,e,d));
+  }
+  static float pulse(float t,float freq=1.0f){
+      return 0.5f+0.5f*sinf(t*freq*6.2832f);
+  }
+  
+  // â”€â”€â”€ Color helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  static void setCol(float r,float g,float b,float a=1.0f){glColor4f(r,g,b,a);}
+  static void bg(float r,float g,float b){
+>     for(;*s;s++) glutBitmapCharacter(font,*s);
+  }
+  static void drawTextLarge(float x,float y,const char* s){
+      drawText(x,y,s,GLUT_BITMAP_TIMES_ROMAN_24);
+  }
+  static void drawTextSmall(float x,float y,const char* s){
+      drawText(x,y,s,GLUT_BITMAP_HELVETICA_12);
+  }
+  
+  // center a string
+  static float strWidth(const char*s,void*font=GLUT_BITMAP_HELVETICA_18){
+      float w=0; for(;*s;s++) w+=glutBitmapWidth(font,*s); return w;
+  }
+  static void drawTextCentered(float cx,float y,const char*s,void*font=GLUT_BITMAP_HELVETICA_18){
+      float w=strWidth(s,font);
+      drawText(cx-w/2,y,s,font);
+  }
+  
+  // â”€â”€â”€ Subtitle bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â
+”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+> struct Subtitle { float start,end; const char* text; };
+> static Subtitle subtitles[] = {
+      // TITLE
+      {0,10,"THE SILENT SCRIPT"},
+>     // ACT I
+>     {10,14,"ACT I: The Sound of Silence"},
+      {14,22,"Aditya â€” confident, expressive, the king of his Kannada-medium school."},
+      {22,30,"He was sharp, loud, and loved. Words came easily in his mother tongue."},
+      {30,35,"Then came the notice: Transfer to a prestigious English-medium school."},
+      {35,45,"8th grade. New school. New language. New world."},
+      {45,55,"His confidence, his crown â€” all left behind at the old school gate."},
+      {55,60,"The English Speech Competition. His first real test."},
+      {60,70,"Aditya spent nights phonetically writing every word he didn't understand."},
+      {70,80,"He walked onto the stage. The bright lights blurred everything."},
+      {80,90,"He froze. 40 seconds. Broken sentences. Then â€” silence."},
+      {90,100,"The laughter of classmates became the soundtrack of his shame."},
+      {100,115,"He began to withdraw. Even Maths felt like a foreign language now."},
+      {115,130,"Trigonometry? Just meaningless squiggles on a blackboard."},
+>     // ACT II
+>     {130,140,"ACT II: The Turning Point"},
+      {140,155,"His elder sister found him staring at a Sine-Cosine table, lost."},
+      {155,165,"She didn't teach formulas. She revealed the logic hidden inside them."},
+      {165,185,"Something clicked. Math has rules that never change â€” unlike English."},
+      {185,200,"He stopped memorizing. He started visualizing. The triangles began speaking."},
+      {200,215,"His Physics teacher watched him solve a derivation no one else could."},
+      {215,230,"'You are the only one here who thinks at my frequency.' â€” the teacher said."},
+      {230,245,"That one sentence lit a fire that would burn for a lifetime."},
+>     // ACT III
+>     {245,258,"ACT III: The Transformation"},
+      {258,270,"One year later. The same competition. The same stage. A different Aditya."},
+      {270,280,"He spoke not from a memorized script â€” but from his own journey."},
+      {280,290,"The same students who laughed were now silent in awe. He won."},
+      {290,295,"And on another stage â€” the Yakshagana stage â€” he found his roar."},
+>     // ACT IV
+>     {295,300,"ACT IV â€” A student cries over Trigonometry. The Professor smiles..."},
+      {300,300,"'I once tried to memorize these triangles too. Let me tell you a story...'"},
+  };
+> static int numSubs = sizeof(subtitles)/sizeof(subtitles[0]);
+  
+  static void drawSubtitle(float t){
+      for(int i=0;i<numSubs;i++){
+          if(t>=subtitles[i].start && t<subtitles[i].end){
+              float alpha=1.0f;
+              float dur=subtitles[i].end-subtitles[i].start;
+              float local=t-subtitles[i].start;
+              if(local<0.5f) alpha=local/0.5f;
+              else if(local>dur-0.5f) alpha=(dur-local)/0.5f;
+              alpha=clamp01(alpha);
+  
+              // subtitle bar
+              glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+              setCol(0,0,0,0.65f*alpha);
+              rect(0,10, WIN_W, 50);
+              setCol(1,0.95f,0.8f,alpha);
+              drawTextCentered(WIN_W/2, 30, subtitles[i].text);
+              glDisable(GL_BLEND);
+              break;
+          }
+> // â”€â”€â”€ Act label â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â
+”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+> static void drawActLabel(const char* label,float alpha){
+      glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+      setCol(1,0.85f,0.3f,alpha);
+      drawTextCentered(WIN_W/2, WIN_H-40, label, GLUT_BITMAP_TIMES_ROMAN_24);
+      glDisable(GL_BLEND);
+  }
+  
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+â•
+  //   SCENE DRAWING FUNCTIONS
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+â•
+  
+  // â”€â”€â”€ Scene 0: Title Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  static void drawSceneTitle(float t){
+      float f=sceneFade(t,SCENE_TITLE_START,SCENE_TITLE_END,2.0f);
+      // Deep indigo night sky
+      bg(0.04f,0.02f,0.12f);
+      glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+  
+      // Stars
+      srand(42);
+      for(int i=0;i<120;i++){
+>     // Apply interactive rotation around the center of the screen
+      glTranslatef(WIN_W/2.0f, WIN_H/2.0f, 0);
+      glRotatef(g_camRotX, 1, 0, 0);
+      glRotatef(g_camRotY, 0, 1, 0);
+      glScalef(1.0f, -1.0f, 1.0f); // Fix for upside-down drawings!
+      glTranslatef(-WIN_W/2.0f, -WIN_H/2.0f, 0);
+  
+      glEnable(GL_DEPTH_TEST);
+      g_zOffset = 0.0f;     // Reset the layer stack!
+      g_layerGap = 1.2f;    // Spacing between paper cutouts
+  
+      // Route to scene
+      if     (t<SCENE_TITLE_END)    drawSceneTitle(t);
+      else if(t<SCENE_KING_END)     drawSceneKing(t);
+      else if(t<SCENE_TRANSFER_END) drawSceneTransfer(t);
+      else if(t<SCENE_SPEECH_END)   drawSceneSpeech(t);
+      else if(t<SCENE_FREEZE_END)   drawSceneFreeze(t);
+      else if(t<SCENE_LOW_END)      drawSceneLow(t);
+      else if(t<SCENE_SISTER_END)   drawSceneSister(t);
+      else if(t<SCENE_MATH_END)     drawSceneMath(t);
+      else if(t<SCENE_PHYSICS_END)  drawScenePhysics(t);
+
+

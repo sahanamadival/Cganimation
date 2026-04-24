@@ -2053,7 +2053,7 @@ int main(int argc,char**argv){
     glutTimerFunc(16,timerCB,0);
 
     printf("╔══════════════════════════════════════════╗\n");
-    printf("║   THE SILENT SCRIPT — Enhanced 3D       ║\n");
+    printf("║   THE SILENT SCRIPT — Enhanced 3D        ║\n");
     printf("╠══════════════════════════════════════════╣\n");
     printf("║  SPACE        Pause / Resume             ║\n");
     printf("║  R            Restart from beginning     ║\n");
